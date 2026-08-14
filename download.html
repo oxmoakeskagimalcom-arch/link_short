@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تحميل الملف</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
+.wrap{max-width:700px;margin:20px auto;padding:12px}.card{background:#151515;border:1px solid #292929;border-radius:22px;padding:20px;box-shadow:0 8px 30px #0008}
+.header{text-align:center}.header h1{font-size:28px;margin:5px 0 10px}.desc{color:#999;font-size:16px}
+.progress{height:9px;background:#2b2b2b;border-radius:20px;overflow:hidden;margin:22px 0 10px}.bar{height:100%;width:10%;background:#00d66b;transition:.35s}
+.step{color:#aaa;font-size:17px;margin-bottom:18px}.adbox{background:#111;border:1px solid #272727;border-radius:18px;padding:15px;margin-top:15px;text-align:center}
+.adtitle{font-size:22px;font-weight:800;margin:5px 0 15px}.middle{min-height:280px}
+.adframe{width:100%;min-height:160px;border:0;background:transparent}.bottom-banner{min-height:75px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-top:18px}.banner{min-height:75px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;border:0;padding:0}
+.continue{width:100%;padding:14px;border:0;border-radius:11px;background:#00d66b;color:#06130b;font-size:17px;font-weight:800;margin-top:16px;cursor:pointer}
+.done{display:none;text-align:center}.download{display:block;text-decoration:none;background:#00d66b;color:#06130b;padding:15px;border-radius:11px;font-weight:900}
+.error{color:#ff6b6b;text-align:center;padding:25px}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card" id="main">
+<div class="header">
+<h1>تحميل الملف</h1>
+<div class="desc">أكمل الخطوات للوصول إلى رابط التحميل</div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="step" id="step">الخطوة 1 من 10</div>
+</div>
+
+<div class="adbox banner"><div id="topBanner"></div></div>
+<div class="adbox middle"><div class="adtitle" id="stageTitle">الخطوة الأولى</div><div id="middleAd"></div></div>
+<div class="bottom-banner"><div id="bottomBanner"></div></div>
+<button class="continue" id="continue">متابعة</button>
+
+<div class="done" id="done">
+<h2>تم تجهيز رابط التحميل</h2><p>يمكنك الآن الانتقال إلى الملف.</p>
+<a class="download" id="download" target="_blank" rel="noopener">تحميل الملف</a>
+</div>
+</div>
+<div class="error hidden" id="error"></div>
+</div>
+
+<script>
+const MY_TOP_BANNER=`<script>
+atOptions={'key':'dcff8a2cffdf0642c627a5bacf3a04fd','format':'iframe','height':60,'width':468,'params':{}};
+<\/script><script src="https://www.highperformanceformat.com/dcff8a2cffdf0642c627a5bacf3a04fd/invoke.js"><\/script>`;
+
+const MY_MIDDLE_ADS=[
+`<script src="https://pl28700469.effectivegatecpm.com/89/a6/b8/89a6b8558224cd67c0822829d68a87ad.js"><\/script>`,
+`<script async="async" data-cfasync="false" src="https://pl28700474.effectivegatecpm.com/596225155ab3da796681d551cb4b7cf4/invoke.js"><\/script><div id="container-596225155ab3da796681d551cb4b7cf4"></div>`,
+`<script src="https://pl28700485.effectivegatecpm.com/ad/c0/62/adc06235d53a0b6f378838879d3f116a.js"><\/script>`,
+`<script>atOptions={'key':'0b7539a5227dc7b69da2ea94b0521ab6','format':'iframe','height':300,'width':160,'params':{}};<\/script><script src="https://www.highperformanceformat.com/0b7539a5227dc7b69da2ea94b0521ab6/invoke.js"><\/script>`,
+`<a href="https://www.effectivegatecpm.com/d6mid86v?key=90c984c8fd10e21cd01541eb4207aa2c" target="_blank" rel="noopener">فتح الإعلان</a>`
+];
+
+function decode64(s){try{return decodeURIComponent(escape(atob(s)))}catch(e){throw new Error('الرابط غير صالح.')}}
+function putFrame(target,html,minHeight){
+ const f=document.createElement('iframe');f.className='adframe';f.style.minHeight=minHeight||'160px';
+ f.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox');
+ document.getElementById(target).replaceChildren(f);
+ const d=f.contentDocument;d.open();d.write('<!doctype html><html><body style="margin:0;text-align:center;background:transparent">'+html+'</body></html>');d.close();
+}
+let data=null,stage=1,ownerAds=[];
+try{
+ const token=new URLSearchParams(location.search).get('token');
+ if(!token)throw new Error('لم يتم العثور على Token.');
+ data=JSON.parse(decode64(token));
+ if(!data.u||!/^https?:\/\//i.test(data.u))throw new Error('رابط الملف غير صالح.');
+ if(!data.b)throw new Error('البانر السفلي غير موجود.');
+ ownerAds=Array.isArray(data.ads)?data.ads:[];
+ if(!ownerAds.length)throw new Error('لا توجد وحدات إعلانية.');
+}catch(e){
+ document.getElementById('main').classList.add('hidden');
+ const er=document.getElementById('error');er.textContent=e.message;er.classList.remove('hidden');
+}
+function render(){
+ document.getElementById('step').textContent=`الخطوة ${stage} من 10`;
+ document.getElementById('bar').style.width=(stage*10)+'%';
+ document.getElementById('stageTitle').textContent='الخطوة '+['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة','التاسعة','العاشرة'][stage-1];
+ putFrame('topBanner',MY_TOP_BANNER,'75px');
+
+ if(stage<=5){
+   putFrame('middleAd',MY_MIDDLE_ADS[stage-1]);
+ }else{
+   const ad=ownerAds[(stage-6)%ownerAds.length];
+   if(ad.type==='smart'){
+     const safe=ad.value.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+     putFrame('middleAd',`<a href="${safe}" target="_blank" rel="noopener" style="font-size:18px">فتح الإعلان</a>`);
+   }else putFrame('middleAd',ad.value);
+ }
+ putFrame('bottomBanner',data.b,'75px');
+ document.getElementById('continue').textContent=stage===10?'إظهار رابط التحميل':'متابعة';
+}
+document.getElementById('continue').onclick=()=>{
+ if(stage<10){stage++;render();return;}
+ document.querySelector('.header').classList.add('hidden');
+ document.querySelectorAll('.adbox').forEach(x=>x.classList.add('hidden'));
+ document.getElementById('continue').classList.add('hidden');
+ document.getElementById('done').style.display='block';
+ document.getElementById('download').href=data.u;
+};
+if(data)render();
+</script>
+</body>
+</html>
