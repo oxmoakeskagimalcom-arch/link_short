@@ -1,0 +1,99 @@
+Enter<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة إنشاء رابط التحميل</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
+.wrap{max-width:720px;margin:30px auto;padding:16px}.card{background:#151515;border:1px solid #292929;border-radius:20px;padding:22px}
+h1{margin:0 0 8px}.muted{color:#999}.field{margin:18px 0}label{display:block;margin-bottom:8px;font-weight:700}
+input,textarea,select{width:100%;background:#0d0d0d;color:#fff;border:1px solid #383838;border-radius:10px;padding:13px;font-size:15px}
+textarea{min-height:130px;resize:vertical}button{border:0;border-radius:10px;padding:13px 18px;background:#00d66b;color:#07140d;font-weight:800;cursor:pointer}
+.add{background:#252525;color:#fff;margin-top:10px;width:100%}.unit{border:1px solid #303030;border-radius:14px;padding:15px;margin:12px 0;background:#111}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.remove{background:#b52b2b;color:#fff}
+.result{display:none;margin-top:20px}.result textarea{min-height:100px}
+.note{font-size:12px;color:#777;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<h1>لوحة إنشاء رابط التحميل</h1>
+<p class="muted">أدخل بيانات الملف وإعلانات صاحب الملف، ثم أنشئ الرابط.</p>
+
+<div class="field">
+<label>رابط الملف النهائي</label>
+<input id="fileUrl" type="url" placeholder="https://example.com/file.zip">
+</div>
+
+<div class="field">
+<label>البانر السفلي — إعلان صاحب الملف</label>
+<textarea id="bottomBanner" placeholder="ضع كود البانر هنا"></textarea>
+</div>
+
+<div class="field">
+<label>الإعلانات المتنوعة لصاحب الملف</label>
+<div id="units"></div>
+<button class="add" id="addUnit" type="button">+ إضافة وحدة إعلانية</button>
+</div>
+
+<button id="create" style="width:100%;margin-top:10px" type="button">إنشاء رابط التحميل</button>
+
+<div class="result" id="result">
+<label>الرابط الناتج</label>
+<textarea id="output" readonly></textarea>
+</div>
+
+<p class="note">اختر Smart Link إذا كانت الوحدة عبارة عن رابط، أو Script / HTML إذا كانت شبكة الإعلانات أعطتك كودًا.</p>
+</div></div>
+
+<script>
+const units=document.getElementById('units');
+function addUnit(){
+  const box=document.createElement('div');
+  box.className='unit';
+  box.innerHTML=`
+    <div class="row">
+      <div>
+        <label>نوع الوحدة</label>
+        <select class="type">
+          <option value="smart">Smart Link</option>
+          <option value="code">Script / HTML</option>
+        </select>
+      </div>
+      <button type="button" class="remove">حذف</button>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>الرابط أو كود الوحدة</label>
+      <textarea class="value" placeholder="ضع الرابط أو كود الإعلان هنا"></textarea>
+    </div>`;
+  box.querySelector('.remove').onclick=()=>box.remove();
+  units.appendChild(box);
+}
+document.getElementById('addUnit').onclick=addUnit;
+addUnit();
+
+function b64(s){return btoa(unescape(encodeURIComponent(s)))}
+document.getElementById('create').onclick=()=>{
+  const fileUrl=document.getElementById('fileUrl').value.trim();
+  const bottomBanner=document.getElementById('bottomBanner').value.trim();
+  if(!/^https?:\/\//i.test(fileUrl)) return alert('اكتب رابط ملف صحيح.');
+  if(!bottomBanner) return alert('أدخل البانر السفلي.');
+
+  const ads=[...units.querySelectorAll('.unit')].map(x=>({
+    type:x.querySelector('.type').value,
+    value:x.querySelector('.value').value.trim()
+  })).filter(x=>x.value);
+
+  if(!ads.length) return alert('أضف وحدة إعلانية واحدة على الأقل.');
+
+  const payload={v:2,u:fileUrl,b:bottomBanner,ads:ads,t:Date.now()};
+  const token=b64(JSON.stringify(payload));
+  const url=new URL('download.html',location.href);
+  url.searchParams.set('token',token);
+  document.getElementById('output').value=url.href;
+  document.getElementById('result').style.display='block';
+};
+</script>
+</body>
+  </html>
