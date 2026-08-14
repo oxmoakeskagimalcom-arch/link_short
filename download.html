@@ -73,7 +73,7 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 <h1>تحميل الملف</h1>
 <div class="desc">أكمل الخطوات للوصول إلى رابط التحميل</div>
 <div class="progress"><div class="bar" id="bar"></div></div>
-<div class="step" id="step">الخطوة 1 من 10</div>
+<div class="step" id="step">الخطوة 1 من 4</div>
 </div>
 
 <!-- بانر صاحب الموقع: بدون إطار -->
@@ -82,11 +82,11 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 <!-- المربع الرئيسي -->
 <div class="middle">
 <div class="adtitle" id="stageTitle">الخطوة الأولى</div>
-<div id="middleAd"></div>
+<div id="smartStageAd" style="margin:10px 0 18px"></div><div id="middleAd"></div>
 </div>
 
-<div class="timer" id="timer">انتظر حتى انتهاء المؤقت<strong id="seconds">10</strong>ثواني</div>
-<button class="continue" id="continue" disabled>انتظر 10 ثواني</button>
+<div class="timer" id="timer">انتظر حتى انتهاء المؤقت<strong id="seconds">30</strong>ثانية</div>
+<button class="continue" id="continue" disabled>انتظر 30 ثانية</button>
 
 <div class="done" id="done">
 <h2>تم تجهيز رابط التحميل</h2>
@@ -120,6 +120,8 @@ atOptions={
 };
 <\/script>
 <script src="https://www.highperformanceformat.com/dcff8a2cffdf0642c627a5bacf3a04fd/invoke.js"><\/script>`;
+
+const MY_SITE_SMART='https://www.effectivegatecpm.com/d6mid86v?key=90c984c8fd10e21cd01541eb4207aa2c';
 
 const MY_MIDDLE_ADS = [
 `<script src="https://pl28700469.effectivegatecpm.com/89/a6/b8/89a6b8558224cd67c0822829d68a87ad.js"><\/script>`,
@@ -284,66 +286,44 @@ try{
 }
 
 function renderStage(){
+  document.getElementById('step').textContent=`الخطوة ${stage} من 4`;
+  document.getElementById('bar').style.width=(stage*25)+'%';
 
-  document.getElementById('step').textContent=
-    `الخطوة ${stage} من 10`;
+  const names=['الأولى','الثانية','الثالثة','الرابعة'];
+  document.getElementById('stageTitle').textContent='الخطوة '+names[stage-1];
 
-  document.getElementById('bar').style.width=
-    (stage*10)+'%';
-
-  const names=[
-    'الأولى','الثانية','الثالثة','الرابعة','الخامسة',
-    'السادسة','السابعة','الثامنة','التاسعة','العاشرة'
-  ];
-
-  document.getElementById('stageTitle').textContent=
-    'الخطوة '+names[stage-1];
-
-  /* بانر الموقع العلوي — خارج الكارت */
+  // البانر العلوي الثابت
   renderAd('topBanner',MY_TOP_BANNER,'75px');
 
-  /* 
-     الإعلانان اللذان قد يكونان Pop/Notification:
-     يظهران من أعلى الصفحة، وليس داخل المربع.
-     أما البانر الطولي والوحدات الشبيهة بالبانر فتظل في المنتصف.
-  */
+  // Pop/Notification في أعلى الصفحة فقط
   document.getElementById('topNotificationAds').replaceChildren();
+  renderNotificationAd(stage<=2 ? MY_MIDDLE_ADS[0] : MY_MIDDLE_ADS[1]);
 
-  if(stage<=2){
-    renderNotificationAd(MY_MIDDLE_ADS[stage-1]);
-    renderAd('middleAd',
-      `<div style="padding:35px 10px;color:#aaa">الإعلان جاهز بالأعلى</div>`,
-      130
-    );
-  }else if(stage<=5){
-    renderAd(
-      'middleAd',
-      MY_MIDDLE_ADS[stage-1],
-      stage===4 ? '320px' : '250px'
-    );
-  }else{
+  // Smart Link بالتبادل: 1 و3 لي، 2 و4 لصاحب الملف
+  const smartUrl=(stage===1 || stage===3) ? MY_SITE_SMART : data.ownerSmart;
+  renderSmartLink('smartStageAd',smartUrl);
 
-    const ad=ownerAds[(stage-6)%ownerAds.length];
+  // باقي إعلانات المنتصف ثابتة وتظهر كلها معًا في كل مرحلة
+  const middleGroup=`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+      <div>${MY_MIDDLE_ADS[2]}</div>
+      <div>${MY_MIDDLE_ADS[3]}</div>
+      <div>${MY_MIDDLE_ADS[4]}</div>
+    </div>`;
+  renderAd('middleAd',middleGroup,420);
 
-    if(ad.type==='smart'){
-      renderSmartLink('middleAd',ad.value);
-    }else{
-      renderAd('middleAd',ad.value,'250px');
-    }
-  }
-
-  /* بانر صاحب الملف السفلي — خارج الكارت */
+  // بانر صاحب الملف أسفل الصفحة
   renderAd('bottomBanner',data.b,'75px');
 
   document.getElementById('continue').textContent=
-    stage===10 ? 'إظهار رابط التحميل' : 'متابعة';
+    stage===4?'إظهار رابط التحميل':'متابعة';
 }
 
 let timerInterval=null;
 
 function startTimer(){
   clearInterval(timerInterval);
-  let left=10;
+  let left=30;
 
   const seconds=document.getElementById('seconds');
   const timer=document.getElementById('timer');
@@ -352,7 +332,7 @@ function startTimer(){
   seconds.textContent=left;
   timer.classList.remove('hidden');
   btn.disabled=true;
-  btn.textContent='انتظر 10 ثواني';
+  btn.textContent='انتظر 30 ثانية';
 
   timerInterval=setInterval(()=>{
     left--;
@@ -362,14 +342,14 @@ function startTimer(){
       clearInterval(timerInterval);
       timer.classList.add('hidden');
       btn.disabled=false;
-      btn.textContent=stage===10?'إظهار رابط التحميل':'متابعة';
+      btn.textContent=stage===4?'إظهار رابط التحميل':'متابعة';
     }
   },1000);
 }
 
 document.getElementById('continue').onclick=()=>{
 
-  if(stage<10){
+  if(stage<4){
     stage++;
     renderStage();
     startTimer();
@@ -393,4 +373,4 @@ if(data){
 }
 </script>
 </body>
-</html>
+  </html>
