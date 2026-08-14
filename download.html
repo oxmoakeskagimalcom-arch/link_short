@@ -34,8 +34,22 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
   width:100%;
   text-align:center;
 }
+#topNotificationAds{
+  width:100%;
+  position:relative;
+  z-index:20;
+}
+#topNotificationAds .notify-frame{
+  width:100%;
+  min-height:0;
+  border:0;
+  display:block;
+}
 .adframe{width:100%;min-height:160px;border:0;background:transparent}
+.timer{margin-top:16px;text-align:center;color:#aaa;font-size:15px}
+.timer strong{display:block;font-size:28px;color:#00d66b;margin-top:4px}
 .continue{width:100%;padding:14px;border:0;border-radius:11px;background:#00d66b;color:#06130b;font-size:17px;font-weight:800;margin-top:16px;cursor:pointer}
+.continue:disabled{opacity:.45;cursor:not-allowed}
 .done{display:none;text-align:center}
 .download{display:block;text-decoration:none;background:#00d66b;color:#06130b;padding:15px;border-radius:11px;font-weight:900}
 .error{color:#ff6b6b;text-align:center;padding:25px}
@@ -49,6 +63,9 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 <div class="banner-outside top-outside">
   <div id="topBanner"></div>
 </div>
+
+<!-- إعلانات الإشعارات / الإعلانات التي تظهر من أعلى الصفحة -->
+<div id="topNotificationAds"></div>
 
 <div class="card" id="main">
 
@@ -68,7 +85,8 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 <div id="middleAd"></div>
 </div>
 
-<button class="continue" id="continue">متابعة</button>
+<div class="timer" id="timer">انتظر حتى انتهاء المؤقت<strong id="seconds">10</strong>ثواني</div>
+<button class="continue" id="continue" disabled>انتظر 10 ثواني</button>
 
 <div class="done" id="done">
 <h2>تم تجهيز رابط التحميل</h2>
@@ -174,6 +192,45 @@ html,body{
   doc.close();
 }
 
+
+function renderNotificationAd(html){
+  const target=document.getElementById('topNotificationAds');
+  target.replaceChildren();
+
+  const iframe=document.createElement('iframe');
+  iframe.className='notify-frame';
+  iframe.setAttribute('scrolling','no');
+  iframe.setAttribute('frameborder','0');
+  iframe.setAttribute('referrerpolicy','no-referrer-when-downgrade');
+  target.appendChild(iframe);
+
+  const doc=iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html,body{margin:0;padding:0;width:100%;background:transparent;overflow:hidden}
+</style>
+</head>
+<body>${html}</body>
+</html>`);
+  doc.close();
+
+  // Give notification/pop scripts a chance to create their own content.
+  setTimeout(()=>{
+    try{
+      const h=Math.max(
+        doc.body.scrollHeight,
+        doc.documentElement.scrollHeight,
+        1
+      );
+      iframe.style.height=Math.min(h+5,600)+'px';
+    }catch(e){}
+  },1200);
+}
+
 function renderSmartLink(targetId,url){
   const safe=url
     .replace(/&/g,'&amp;')
@@ -245,15 +302,25 @@ function renderStage(){
   /* بانر الموقع العلوي — خارج الكارت */
   renderAd('topBanner',MY_TOP_BANNER,'75px');
 
-  /* المنطقة الوسطى */
-  if(stage<=5){
+  /* 
+     الإعلانان اللذان قد يكونان Pop/Notification:
+     يظهران من أعلى الصفحة، وليس داخل المربع.
+     أما البانر الطولي والوحدات الشبيهة بالبانر فتظل في المنتصف.
+  */
+  document.getElementById('topNotificationAds').replaceChildren();
 
+  if(stage<=2){
+    renderNotificationAd(MY_MIDDLE_ADS[stage-1]);
+    renderAd('middleAd',
+      `<div style="padding:35px 10px;color:#aaa">الإعلان جاهز بالأعلى</div>`,
+      130
+    );
+  }else if(stage<=5){
     renderAd(
       'middleAd',
       MY_MIDDLE_ADS[stage-1],
       stage===4 ? '320px' : '250px'
     );
-
   }else{
 
     const ad=ownerAds[(stage-6)%ownerAds.length];
@@ -272,11 +339,40 @@ function renderStage(){
     stage===10 ? 'إظهار رابط التحميل' : 'متابعة';
 }
 
+let timerInterval=null;
+
+function startTimer(){
+  clearInterval(timerInterval);
+  let left=10;
+
+  const seconds=document.getElementById('seconds');
+  const timer=document.getElementById('timer');
+  const btn=document.getElementById('continue');
+
+  seconds.textContent=left;
+  timer.classList.remove('hidden');
+  btn.disabled=true;
+  btn.textContent='انتظر 10 ثواني';
+
+  timerInterval=setInterval(()=>{
+    left--;
+    seconds.textContent=left;
+
+    if(left<=0){
+      clearInterval(timerInterval);
+      timer.classList.add('hidden');
+      btn.disabled=false;
+      btn.textContent=stage===10?'إظهار رابط التحميل':'متابعة';
+    }
+  },1000);
+}
+
 document.getElementById('continue').onclick=()=>{
 
   if(stage<10){
     stage++;
     renderStage();
+    startTimer();
     window.scrollTo({top:0,behavior:'smooth'});
     return;
   }
@@ -291,7 +387,10 @@ document.getElementById('continue').onclick=()=>{
   document.getElementById('download').href=data.u;
 };
 
-if(data) renderStage();
+if(data){
+  renderStage();
+  startTimer();
+}
 </script>
 </body>
 </html>
