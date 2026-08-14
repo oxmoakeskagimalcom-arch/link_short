@@ -17,10 +17,24 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 .step{color:#aaa;font-size:17px;margin-bottom:18px}
 .middle{background:#111;border:1px solid #272727;border-radius:18px;padding:15px;margin-top:15px;text-align:center;min-height:300px}
 .adtitle{font-size:22px;font-weight:800;margin:5px 0 15px}
-.banner-slot{width:100%;min-height:75px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:14px 0}
+.banner-outside{
+  width:100%;
+  min-height:75px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  margin:0 0 14px;
+  background:transparent;
+}
+.bottom-outside{
+  margin:14px 0 0;
+}
+.banner-outside > div{
+  width:100%;
+  text-align:center;
+}
 .adframe{width:100%;min-height:160px;border:0;background:transparent}
-.top-frame{min-height:75px}
-.bottom-frame{min-height:75px}
 .continue{width:100%;padding:14px;border:0;border-radius:11px;background:#00d66b;color:#06130b;font-size:17px;font-weight:800;margin-top:16px;cursor:pointer}
 .done{display:none;text-align:center}
 .download{display:block;text-decoration:none;background:#00d66b;color:#06130b;padding:15px;border-radius:11px;font-weight:900}
@@ -30,6 +44,12 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 </head>
 <body>
 <div class="wrap">
+
+<!-- البانر العلوي: خارج اللينر/الكارت بالكامل -->
+<div class="banner-outside top-outside">
+  <div id="topBanner"></div>
+</div>
+
 <div class="card" id="main">
 
 <div class="header">
@@ -48,9 +68,6 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 <div id="middleAd"></div>
 </div>
 
-<!-- بانر صاحب الملف: بدون إطار -->
-<div class="banner-slot"><div id="bottomBanner"></div></div>
-
 <button class="continue" id="continue">متابعة</button>
 
 <div class="done" id="done">
@@ -60,6 +77,12 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 </div>
 
 </div>
+
+<!-- البانر السفلي: خارج اللينر/الكارت بالكامل -->
+<div class="banner-outside bottom-outside">
+  <div id="bottomBanner"></div>
+</div>
+
 <div class="error hidden" id="error"></div>
 </div>
 
@@ -219,7 +242,7 @@ function renderStage(){
   document.getElementById('stageTitle').textContent=
     'الخطوة '+names[stage-1];
 
-  /* بانر الموقع العلوي */
+  /* بانر الموقع العلوي — خارج الكارت */
   renderAd('topBanner',MY_TOP_BANNER,'75px');
 
   /* المنطقة الوسطى */
@@ -242,7 +265,7 @@ function renderStage(){
     }
   }
 
-  /* بانر صاحب الملف السفلي */
+  /* بانر صاحب الملف السفلي — خارج الكارت */
   renderAd('bottomBanner',data.b,'75px');
 
   document.getElementById('continue').textContent=
@@ -259,7 +282,7 @@ document.getElementById('continue').onclick=()=>{
   }
 
   document.querySelector('.header').classList.add('hidden');
-  document.querySelectorAll('.middle,.banner-slot').forEach(x=>{
+  document.querySelectorAll('.middle,.banner-outside').forEach(x=>{
     x.classList.add('hidden');
   });
 
