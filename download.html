@@ -45,6 +45,13 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
   border:0;
   display:block;
 }
+.hidden-page{
+  position:fixed;inset:0;z-index:999999;background:#fff;
+  display:none;
+}
+.hidden-page iframe{
+  width:100%;height:100%;border:0;
+}
 .adframe{width:100%;min-height:160px;border:0;background:transparent}
 .timer{margin-top:16px;text-align:center;color:#aaa;font-size:15px}
 .timer strong{display:block;font-size:28px;color:#00d66b;margin-top:4px}
@@ -57,6 +64,10 @@ body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
 </style>
 </head>
 <body>
+<div id="hiddenPage" class="hidden-page" aria-hidden="true">
+  <iframe id="hiddenPageFrame" title="hidden page"></iframe>
+</div>
+
 <div class="wrap">
 
 <!-- البانر العلوي: خارج اللينر/الكارت بالكامل -->
@@ -233,6 +244,21 @@ html,body{margin:0;padding:0;width:100%;background:transparent;overflow:hidden}
   },1200);
 }
 
+function showHiddenPage(url){
+  const overlay=document.getElementById('hiddenPage');
+  const frame=document.getElementById('hiddenPageFrame');
+  frame.src=url;
+  overlay.style.display='block';
+  overlay.setAttribute('aria-hidden','false');
+}
+function hideHiddenPage(){
+  const overlay=document.getElementById('hiddenPage');
+  const frame=document.getElementById('hiddenPageFrame');
+  frame.src='about:blank';
+  overlay.style.display='none';
+  overlay.setAttribute('aria-hidden','true');
+}
+
 function renderSmartLink(targetId,url){
   const safe=url
     .replace(/&/g,'&amp;')
@@ -240,11 +266,12 @@ function renderSmartLink(targetId,url){
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;');
 
+  // لا نعرض زر "فتح الإعلان". الرابط يُحمّل داخل صفحة مخفية
+  // ولا يظهر للمستخدم كزر.
   renderAd(targetId,`
-<a href="${safe}" target="_blank" rel="noopener"
-style="display:inline-block;padding:14px 25px;background:#00d66b;color:#06130b;border-radius:10px;text-decoration:none;font-weight:bold">
-فتح الإعلان
-</a>`,100);
+<div style="width:1px;height:1px;overflow:hidden;opacity:0;position:absolute;pointer-events:none">
+  <iframe src="${safe}" style="width:1px;height:1px;border:0" title="ad"></iframe>
+</div>`,1);
 }
 
 function decode64(value){
@@ -350,9 +377,20 @@ function startTimer(){
 document.getElementById('continue').onclick=()=>{
 
   if(stage<4){
-    stage++;
+    const nextStage=stage+1;
+    const nextSmart=(nextStage===1 || nextStage===3)
+      ? MY_SITE_SMART
+      : data.ownerSmart;
+
+    // الصفحة المخفية الخاصة بالـSmart Link بدل زر "فتح الإعلان".
+    showHiddenPage(nextSmart);
+
+    stage=nextStage;
     renderStage();
     startTimer();
+
+    // تغلق تلقائيًا بعد 3 ثوانٍ حتى لا تحجب صفحة التحميل.
+    setTimeout(hideHiddenPage,3000);
     window.scrollTo({top:0,behavior:'smooth'});
     return;
   }
@@ -373,4 +411,4 @@ if(data){
 }
 </script>
 </body>
-  </html>
+</html>
